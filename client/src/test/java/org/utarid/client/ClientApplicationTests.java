@@ -17,14 +17,19 @@ class ClientApplicationTests {
     @Autowired
     private RestTemplateBuilder restTemplateBuilder;
 
+    @Autowired
+    private FeignInterface feignInterface;
+
     @Test
     void contextLoads() {
     }
 
     @Test
     void testWithFeign() {
-
+        String response = feignInterface.greeting();
+        System.out.println("response :" + response);
     }
+
     @Test
     void testWithoutFeign() {
         InstanceInfo service = eurekaClient
