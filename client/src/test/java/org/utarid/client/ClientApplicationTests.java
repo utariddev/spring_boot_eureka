@@ -2,6 +2,7 @@ package org.utarid.client;
 
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.EurekaClient;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,6 +21,9 @@ class ClientApplicationTests {
     @Autowired
     private FeignInterface feignInterface;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     @Test
     void contextLoads() {
     }
@@ -27,25 +31,34 @@ class ClientApplicationTests {
     @Test
     void testWithFeign() {
         String response = feignInterface.greeting();
-        System.out.println("response :" + response);
+        System.out.println("response: " + response);
+        Assertions.assertEquals("greeting", response);
     }
 
     @Test
-    void testWithoutFeign() {
+    void testWithRestTemplate() {
         InstanceInfo service = eurekaClient
                 .getApplication("spring-cloud-eureka-client")
                 .getInstances()
-                .get(0);
+                .getFirst();
 
         String hostName = service.getHostName();
         int port = service.getPort();
 
-        System.out.println("hostName:" + hostName);
-        System.out.println("port :" + port);
+        System.out.println("hostName: " + hostName);
+        System.out.println("port: " + port);
 
         String url = "http://" + hostName + ":" + port + "/greeting";
-        RestTemplate restTemplate = restTemplateBuilder.build();
-        String response = restTemplate.getForObject(url, String.class);
-        System.out.println("response :" + response);
+        RestTemplate rTemplate = restTemplateBuilder.build();
+        String response = rTemplate.getForObject(url, String.class);
+        System.out.println("response: " + response);
+        Assertions.assertEquals("greeting", response);
+    }
+
+    @Test
+    void testWithLoadBalancedRestTemplate() {
+        String response = restTemplate.getForObject("http://spring-cloud-eureka-client/greeting", String.class);
+        System.out.println("response: " + response);
+        Assertions.assertEquals("greeting", response);
     }
 }
